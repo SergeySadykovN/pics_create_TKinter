@@ -32,6 +32,9 @@ class DrawingApp:
         # переменная для хранения текущего размера кисти
         self.brush_size = 1
 
+        # переменная для хранения предыдущего цвета пера
+        self.prevision_pen_color = self.pen_color
+
         # привязывает событие перетаскивания левой кнопки мыши к paint методу.
         self.canvas.bind('<B1-Motion>', self.paint)
         # привязывает событие отпускания левой кнопки мыши к reset методу.
@@ -44,12 +47,15 @@ class DrawingApp:
         control_frame = tk.Frame(self.root)
         control_frame.pack(fill=tk.X)
 
-        # tk.Button : Кнопки для очистки холста, выбора цвета и сохранения изображения.
+        # tk.Button : Кнопки для очистки холста, выбора цвета, ластика и сохранения изображения.
         clear_button = tk.Button(control_frame, text="Очистить", command=self.clear_canvas)
         clear_button.pack(side=tk.LEFT)
 
         color_button = tk.Button(control_frame, text="Выбрать цвет", command=self.choose_color)
         color_button.pack(side=tk.LEFT)
+
+        eraser_button = tk.Button(control_frame, text="Ластик", command=self.use_eraser)
+        eraser_button.pack(side=tk.LEFT)
 
         save_button = tk.Button(control_frame, text="Сохранить", command=self.save_image)
         save_button.pack(side=tk.LEFT)
@@ -93,7 +99,13 @@ class DrawingApp:
 
     def choose_color(self):
         '''открывает диалоговое окно выбора цвета для выбора цвета пера.'''
+        # Обновляет `self.previous_pen_color` перед выбором нового цвета.
+        self.prevision_pen_color = self.pen_color
         self.pen_color = colorchooser.askcolor(color=self.pen_color)[1]
+
+    def use_eraser(self):
+        '''Устанавливает `self.pen_color` в "white" для использования ластика.'''
+        self.pen_color = 'white'
 
     def save_image(self):
         '''открывает диалоговое окно для сохранения изображения в формате PNG.'''
