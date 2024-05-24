@@ -39,6 +39,8 @@ class DrawingApp:
         self.canvas.bind('<B1-Motion>', self.paint)
         # привязывает событие отпускания левой кнопки мыши к reset методу.
         self.canvas.bind('<ButtonRelease-1>', self.reset)
+        # привязывает событие для правой кнопки мыши для выбора цвета пикселя
+        self.canvas.bind('<Button-3>', self.pick_color)
 
     def setup_ui(self):
         '''Настройка пользовательского интерфейса.
@@ -106,6 +108,12 @@ class DrawingApp:
     def use_eraser(self):
         '''Устанавливает `self.pen_color` в "white" для использования ластика.'''
         self.pen_color = 'white'
+
+    def pick_color(self, event):
+        '''Привязан к событию `<Button-3>` (правая кнопка мыши) на холсте.'''
+        x, y = event.x, event.y
+        # #%02x%02x%02x : шестнадцатеричный цветовой код -> hex строка вида #RRGGBB
+        self.pen_color = '#%02x%02x%02x' % self.image.getpixel((x, y))
 
     def save_image(self):
         '''открывает диалоговое окно для сохранения изображения в формате PNG.'''
