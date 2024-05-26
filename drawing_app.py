@@ -10,6 +10,8 @@ class DrawingApp:
         # root : корневой виджет Tkinter, который служит контейнером для всего интерфейса приложения.
         self.root = root
         self.root.title("Рисовалка с сохранением в PNG")
+        # Добавим атрибут для отслеживания режима добавления текста
+        self.text_mode = False
 
         # self.image : пустое изображение с заданным размером и цветом.
         self.image = Image.new("RGB", (1200, 800), "white")
@@ -46,6 +48,8 @@ class DrawingApp:
         self.canvas.bind('<ButtonRelease-1>', self.reset)
         # привязывает событие для правой кнопки мыши для выбора цвета пикселя
         self.canvas.bind('<Button-3>', self.pick_color)
+        # Привязываем событие <Button-1> на холсте к методу add_text_canvas_click
+        self.canvas.bind('<Button-1>', self.handle_left_click)
 
         # привязка горячих клавиш
         self.root.bind('<Control-s>', self.save_image)  # сохранение изображения
@@ -54,7 +58,7 @@ class DrawingApp:
         self.root.bind('<Control-y>', self.redo)  # повтор последнего отмененного действия
         self.root.bind('<Control-q>', self.clear_canvas)  # очистка холста
         self.root.bind('<Control-e>', self.use_eraser)  # ластик
-        self.root.bind('<Control-r>', self.change_canvas_size) # размер холста
+        self.root.bind('<Control-r>', self.change_canvas_size)  # размер холста
 
     def setup_ui(self):
         '''Настройка пользовательского интерфейса.
@@ -63,7 +67,7 @@ class DrawingApp:
         control_frame = tk.Frame(self.root)
         control_frame.pack(fill=tk.X)
 
-        # tk.Button : Кнопки для очистки холста, выбора цвета, ластика, сохранения изображения, отмены и повтора, выбора размера холста.
+        # tk.Button : Кнопки для очистки холста, выбора цвета, ластика, сохранения изображения, отмены и повтора, выбора размера холста, добавления текстового поля и смены фона.
         clear_button = tk.Button(control_frame, text="Очистить\nCtrl+Q", command=self.clear_canvas)
         clear_button.pack(side=tk.LEFT)
 
@@ -85,6 +89,12 @@ class DrawingApp:
         resize_button = tk.Button(control_frame, text="Размер холста\nCTR+R", command=self.change_canvas_size)
         resize_button.pack(side=tk.LEFT)
 
+        text_button = tk.Button(control_frame, text="Текст", command=self.add_text_button_click)
+        text_button.pack(side=tk.LEFT)
+
+        change_background_buttom = tk.Button(control_frame, text="Изменить фон", command=self.change_background_color)
+        change_background_buttom.pack(side=tk.LEFT)
+
         # маленький холст для предварительного просмотра цвета
         self.color_preview = tk.Canvas(control_frame, width=30, height=30, bg=self.pen_color, bd=1, relief=tk.SUNKEN)
         self.color_preview.pack(side=tk.LEFT, padx=5)
@@ -97,6 +107,13 @@ class DrawingApp:
         brush_size_menu = tk.OptionMenu(control_frame, self.brush_size_var, *sizes, command=self.update_brush_size)
         brush_size_menu.pack(side=tk.LEFT)
 
+    def handle_left_click(self, event):
+        '''Обработка нажатия левой кнопки мыши на холсте.'''
+        if self.text_mode:
+            self.add_text_button_click(event)
+        else:
+            self.paint(event)
+
     def update_brush_size(self, value):
         '''Обновляет значение `self.brush_size`
         при выборе нового размера из выпадающего меню'''
@@ -104,22 +121,27 @@ class DrawingApp:
 
     def paint(self, event):
         '''Метод рисования : рисует линии на холсте и изображении при перетаскивании мыши'''
-        if self.last_x and self.last_y:
-            # create_line : рисует линию на холсте от последней записанной позиции до текущей позиции.
-            self.canvas.create_line(self.last_x, self.last_y, event.x, event.y,
-                                    width=self.brush_size, fill=self.pen_color,
-                                    capstyle=tk.ROUND, smooth=tk.TRUE)
-            # draw.line : рисует линию на изображении PIL для последующего сохранения
-            self.draw.line([self.last_x, self.last_y, event.x, event.y], fill=self.pen_color,
-                           width=self.brush_size)
+        if not self.text_mode:
+            if self.last_x and self.last_y:
+                # create_line : рисует линию на холсте от последней записанной позиции до текущей позиции.
+                self.canvas.create_line(self.last_x, self.last_y, event.x, event.y,
+                                        width=self.brush_size, fill=self.pen_color,
+                                        capstyle=tk.ROUND, smooth=tk.TRUE)
+                # draw.line : рисует линию на изображении PIL для последующего сохранения
+                self.draw.line([self.last_x, self.last_y, event.x, event.y], fill=self.pen_color,
+                               width=self.brush_size)
 
-            # сохраняем действие в истории
-            self.history.append(('line', (self.last_x, self.last_y, event.x, event.y), self.pen_color, self.brush_size))
-            # очистка стека отмен после нового действия
-            self.redo_stack.clear()
+                # сохраняем действие в истории
+                self.history.append(
+                    ('line', (self.last_x, self.last_y, event.x, event.y), self.pen_color, self.brush_size))
+                # очистка стека отмен после нового действия
+                self.redo_stack.clear()
 
-        self.last_x = event.x
-        self.last_y = event.y
+            self.last_x = event.x
+            self.last_y = event.y
+        else:
+            x, y = event.x, event.y
+            self.add_text(x, y)
 
     def reset(self, event):
         '''сбрасывает последнюю позицию курсора при отпускании кнопки мыши'''
@@ -154,6 +176,8 @@ class DrawingApp:
         self.pen_color = '#%02x%02x%02x' % self.image.getpixel((x, y))
         # обновляем цвет предварительного просмотра
         self.color_preview.config(bg=self.pen_color)
+        # # вызываем метод add_text и передаем текущие координаты курсора
+        # self.add_text(x, y)
 
     def save_image(self, event=None):
         '''открывает диалоговое окно для сохранения изображения в формате PNG.'''
@@ -189,14 +213,42 @@ class DrawingApp:
 
     def change_canvas_size(self, event=None):
         '''Изменяет размер холста'''
-        new_width = simpledialog.askinteger("Изменение размера холста", "Введите ширину: ", parent=self.root, minvalue=1)
-        new_height = simpledialog.askinteger("Изменение размера холста", "Введите высоту: ", parent=self.root, minvalue=1)
+        new_width = simpledialog.askinteger("Изменение размера холста", "Введите ширину: ", parent=self.root,
+                                            minvalue=1)
+        new_height = simpledialog.askinteger("Изменение размера холста", "Введите высоту: ", parent=self.root,
+                                             minvalue=1)
 
         if new_width and new_height:
             self.canvas.config(width=new_width, height=new_height)
             self.image = Image.new("RGB", (new_width, new_height), "white")
             self.draw = ImageDraw.Draw(self.image)
             self.clear_canvas()
+
+    def add_text_button_click(self, event=None):
+        '''Вызывается при нажатии кнопки "Текст".'''
+        if event:
+            x, y = event.x, event.y
+            # вызываем метод add_text и передаем центр холста
+            self.add_text(x, y)
+        else:
+            x = int(self.canvas.winfo_width() / 2)
+            y = int(self.canvas.winfo_height() / 2)
+            self.add_text(x, y)
+
+    def add_text(self, x, y):
+        '''Добавляет текст на холст'''
+        text = simpledialog.askstring("Добавление текста", "Введите текст:", parent=self.root)
+        if text:
+            # Создаем текст на холсте с указанными координатами
+            text_id = self.canvas.create_text(x, y, text=text, fill=self.pen_color, anchor='nw', font=('Arial', 14))
+            # Сохраняем действие в истории
+            self.history.append(('text', text_id, x, y, text, self.pen_color))
+
+    def change_background_color(self):
+        '''Изменение цвета фона на холсте'''
+        new_color = colorchooser.askcolor()[1]
+        if new_color:
+            self.canvas.config(bg=new_color)
 
 
 def main():
