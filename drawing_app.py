@@ -228,7 +228,7 @@ class DrawingApp:
         '''Вызывается при нажатии кнопки "Текст".'''
         if event:
             x, y = event.x, event.y
-            # вызываем метод add_text и передаем центр холста
+            # вызываем метод add_text и передаем координаты
             self.add_text(x, y)
         else:
             x = int(self.canvas.winfo_width() / 2)
