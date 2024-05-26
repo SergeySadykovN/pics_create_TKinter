@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import colorchooser, filedialog, messagebox
+from tkinter import colorchooser, filedialog, messagebox, simpledialog
 from PIL import Image, ImageDraw
 
 
@@ -54,6 +54,7 @@ class DrawingApp:
         self.root.bind('<Control-y>', self.redo)  # повтор последнего отмененного действия
         self.root.bind('<Control-q>', self.clear_canvas)  # очистка холста
         self.root.bind('<Control-e>', self.use_eraser)  # ластик
+        self.root.bind('<Control-r>', self.change_canvas_size) # размер холста
 
     def setup_ui(self):
         '''Настройка пользовательского интерфейса.
@@ -62,7 +63,7 @@ class DrawingApp:
         control_frame = tk.Frame(self.root)
         control_frame.pack(fill=tk.X)
 
-        # tk.Button : Кнопки для очистки холста, выбора цвета, ластика, сохранения изображения, отмены и повтора.
+        # tk.Button : Кнопки для очистки холста, выбора цвета, ластика, сохранения изображения, отмены и повтора, выбора размера холста.
         clear_button = tk.Button(control_frame, text="Очистить\nCtrl+Q", command=self.clear_canvas)
         clear_button.pack(side=tk.LEFT)
 
@@ -80,6 +81,9 @@ class DrawingApp:
 
         redo_button = tk.Button(control_frame, text="Повторить\nCtrl+Y", command=self.redo)
         redo_button.pack(side=tk.LEFT)
+
+        resize_button = tk.Button(control_frame, text="Размер холста\nCTR+R", command=self.change_canvas_size)
+        resize_button.pack(side=tk.LEFT)
 
         # маленький холст для предварительного просмотра цвета
         self.color_preview = tk.Canvas(control_frame, width=30, height=30, bg=self.pen_color, bd=1, relief=tk.SUNKEN)
@@ -182,6 +186,17 @@ class DrawingApp:
                 _, coords, color, width = action
                 self.canvas.create_line(coords, width=width, fill=color, capstyle=tk.ROUND, smooth=tk.TRUE)
                 self.draw.line(coords, fill=color, width=width)
+
+    def change_canvas_size(self, event=None):
+        '''Изменяет размер холста'''
+        new_width = simpledialog.askinteger("Изменение размера холста", "Введите ширину: ", parent=self.root, minvalue=1)
+        new_height = simpledialog.askinteger("Изменение размера холста", "Введите высоту: ", parent=self.root, minvalue=1)
+
+        if new_width and new_height:
+            self.canvas.config(width=new_width, height=new_height)
+            self.image = Image.new("RGB", (new_width, new_height), "white")
+            self.draw = ImageDraw.Draw(self.image)
+            self.clear_canvas()
 
 
 def main():
