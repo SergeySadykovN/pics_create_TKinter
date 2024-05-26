@@ -20,9 +20,6 @@ class DrawingApp:
         self.canvas = tk.Canvas(root, width=1200, height=800, bg='white')
         self.canvas.pack()
 
-        # вызывает метод для настройки элементов управления пользовательского интерфейса.
-        self.setup_ui()
-
         # отслеживает последнюю позицию курсора для рисования.
         self.last_x, self.last_y = None, None
 
@@ -33,7 +30,10 @@ class DrawingApp:
         self.brush_size = 1
 
         # переменная для хранения предыдущего цвета пера
-        self.prevision_pen_color = self.pen_color
+        self.previous_pen_color = self.pen_color
+
+        # вызывает метод для настройки элементов управления пользовательского интерфейса.
+        self.setup_ui()
 
         # Стек для хранения истории действий
         self.history = []
@@ -48,10 +48,10 @@ class DrawingApp:
         self.canvas.bind('<Button-3>', self.pick_color)
 
         # привязка горячих клавиш
-        self.root.bind('<Control-s>', self.save_image)  # сохранение изображение
+        self.root.bind('<Control-s>', self.save_image)  # сохранение изображения
         self.root.bind('<Control-c>', self.choose_color)  # выбор цвета
         self.root.bind('<Control-z>', self.undo)  # отмена последнего действия
-        self.root.bind('<Control-y>', self.redo)  # повтор последненего отмененного действия
+        self.root.bind('<Control-y>', self.redo)  # повтор последнего отмененного действия
         self.root.bind('<Control-q>', self.clear_canvas)  # очистка холста
         self.root.bind('<Control-e>', self.use_eraser)  # ластик
 
@@ -63,23 +63,27 @@ class DrawingApp:
         control_frame.pack(fill=tk.X)
 
         # tk.Button : Кнопки для очистки холста, выбора цвета, ластика, сохранения изображения, отмены и повтора.
-        clear_button = tk.Button(control_frame, text="Очистить\nCTR+Q", command=self.clear_canvas)
+        clear_button = tk.Button(control_frame, text="Очистить\nCtrl+Q", command=self.clear_canvas)
         clear_button.pack(side=tk.LEFT)
 
-        color_button = tk.Button(control_frame, text="Выбрать цвет\nCTR+C", command=self.choose_color)
+        color_button = tk.Button(control_frame, text="Выбрать цвет\nCtrl+C", command=self.choose_color)
         color_button.pack(side=tk.LEFT)
 
-        eraser_button = tk.Button(control_frame, text="Ластик\nCTR+E", command=self.use_eraser)
+        eraser_button = tk.Button(control_frame, text="Ластик\nCtrl+E", command=self.use_eraser)
         eraser_button.pack(side=tk.LEFT)
 
-        save_button = tk.Button(control_frame, text="Сохранить\nCTR+S", command=self.save_image)
+        save_button = tk.Button(control_frame, text="Сохранить\nCtrl+S", command=self.save_image)
         save_button.pack(side=tk.LEFT)
 
-        undo_button = tk.Button(control_frame, text="Отменить\nCTR+Z", command=self.undo)
+        undo_button = tk.Button(control_frame, text="Отменить\nCtrl+Z", command=self.undo)
         undo_button.pack(side=tk.LEFT)
 
-        redo_button = tk.Button(control_frame, text="Повторить\nCTR+Y", command=self.redo)
+        redo_button = tk.Button(control_frame, text="Повторить\nCtrl+Y", command=self.redo)
         redo_button.pack(side=tk.LEFT)
+
+        # маленький холст для предварительного просмотра цвета
+        self.color_preview = tk.Canvas(control_frame, width=30, height=30, bg=self.pen_color, bd=1, relief=tk.SUNKEN)
+        self.color_preview.pack(side=tk.LEFT, padx=5)
 
         # список размеров кисти
         sizes = [x for x in range(1, 21)]
@@ -105,7 +109,7 @@ class DrawingApp:
             self.draw.line([self.last_x, self.last_y, event.x, event.y], fill=self.pen_color,
                            width=self.brush_size)
 
-            # сохраняем дейсвие в истории
+            # сохраняем действие в истории
             self.history.append(('line', (self.last_x, self.last_y, event.x, event.y), self.pen_color, self.brush_size))
             # очистка стека отмен после нового действия
             self.redo_stack.clear()
@@ -120,24 +124,32 @@ class DrawingApp:
     def clear_canvas(self, event=None):
         '''очищает холст и сбрасывает изображение до пустого белого изображения'''
         self.canvas.delete("all")
-        self.image = Image.new("RGB", (600, 400), "white")
+        self.image = Image.new("RGB", (1200, 800), "white")
         self.draw = ImageDraw.Draw(self.image)
+        # self.history.clear()
+        # self.redo_stack.clear()
 
     def choose_color(self, event=None):
         '''открывает диалоговое окно выбора цвета для выбора цвета пера.'''
         # Обновляет `self.previous_pen_color` перед выбором нового цвета.
-        self.prevision_pen_color = self.pen_color
+        self.previous_pen_color = self.pen_color
         self.pen_color = colorchooser.askcolor(color=self.pen_color)[1]
+        # обновляем цвет предварительного просмотра
+        self.color_preview.config(bg=self.pen_color)
 
     def use_eraser(self, event=None):
         '''Устанавливает `self.pen_color` в "white" для использования ластика.'''
         self.pen_color = 'white'
+        # обновляем цвет предварительного просмотра
+        self.color_preview.config(bg=self.pen_color)
 
     def pick_color(self, event):
         '''Привязан к событию `<Button-3>` (правая кнопка мыши) на холсте.'''
         x, y = event.x, event.y
         # #%02x%02x%02x : шестнадцатеричный цветовой код -> hex строка вида #RRGGBB
         self.pen_color = '#%02x%02x%02x' % self.image.getpixel((x, y))
+        # обновляем цвет предварительного просмотра
+        self.color_preview.config(bg=self.pen_color)
 
     def save_image(self, event=None):
         '''открывает диалоговое окно для сохранения изображения в формате PNG.'''
