@@ -1,10 +1,10 @@
 import tkinter as tk
-from tkinter import colorchooser, filedialog, messagebox, simpledialog
+from tkinter import Tk, Event, Frame, Canvas, colorchooser, filedialog, messagebox, simpledialog
 from PIL import Image, ImageDraw
 
 
 class DrawingApp:
-    def __init__(self, root):
+    def __init__(self, root: Tk):
         '''инициализирует основные атрибуты и настраивает элементы холста и пользовательского интерфейса.'''
 
         # root : корневой виджет Tkinter, который служит контейнером для всего интерфейса приложения.
@@ -107,7 +107,7 @@ class DrawingApp:
         brush_size_menu = tk.OptionMenu(control_frame, self.brush_size_var, *sizes, command=self.update_brush_size)
         brush_size_menu.pack(side=tk.LEFT)
 
-    def handle_left_click(self, event):
+    def handle_left_click(self, event: Event):
         '''Обработка нажатия левой кнопки мыши на холсте.'''
         if self.text_mode:
             self.add_text_button_click(event)
@@ -119,7 +119,7 @@ class DrawingApp:
         при выборе нового размера из выпадающего меню'''
         self.brush_size = int(value)
 
-    def paint(self, event):
+    def paint(self, event: Event):
         '''Метод рисования : рисует линии на холсте и изображении при перетаскивании мыши'''
         if not self.text_mode:
             if self.last_x and self.last_y:
@@ -143,11 +143,11 @@ class DrawingApp:
             x, y = event.x, event.y
             self.add_text(x, y)
 
-    def reset(self, event):
+    def reset(self, event: Event):
         '''сбрасывает последнюю позицию курсора при отпускании кнопки мыши'''
         self.last_x, self.last_y = None, None
 
-    def clear_canvas(self, event=None):
+    def clear_canvas(self, event: Event = None):
         '''очищает холст и сбрасывает изображение до пустого белого изображения'''
         self.canvas.delete("all")
         self.image = Image.new("RGB", (1200, 800), "white")
@@ -155,7 +155,7 @@ class DrawingApp:
         # self.history.clear()
         # self.redo_stack.clear()
 
-    def choose_color(self, event=None):
+    def choose_color(self, event: Event = None):
         '''открывает диалоговое окно выбора цвета для выбора цвета пера.'''
         # Обновляет `self.previous_pen_color` перед выбором нового цвета.
         self.previous_pen_color = self.pen_color
@@ -163,13 +163,13 @@ class DrawingApp:
         # обновляем цвет предварительного просмотра
         self.color_preview.config(bg=self.pen_color)
 
-    def use_eraser(self, event=None):
+    def use_eraser(self, event: Event = None):
         '''Устанавливает `self.pen_color` в "white" для использования ластика.'''
         self.pen_color = 'white'
         # обновляем цвет предварительного просмотра
         self.color_preview.config(bg=self.pen_color)
 
-    def pick_color(self, event):
+    def pick_color(self, event: Event):
         '''Привязан к событию `<Button-3>` (правая кнопка мыши) на холсте.'''
         x, y = event.x, event.y
         # #%02x%02x%02x : шестнадцатеричный цветовой код -> hex строка вида #RRGGBB
@@ -179,7 +179,7 @@ class DrawingApp:
         # # вызываем метод add_text и передаем текущие координаты курсора
         # self.add_text(x, y)
 
-    def save_image(self, event=None):
+    def save_image(self, event: Event = None):
         '''открывает диалоговое окно для сохранения изображения в формате PNG.'''
         file_path = filedialog.asksaveasfilename(filetypes=[('PNG files', '*.png')])
         if file_path:
@@ -188,14 +188,14 @@ class DrawingApp:
             self.image.save(file_path)
             messagebox.showinfo("Информация", "Изображение успешно сохранено!")
 
-    def undo(self, event=None):
+    def undo(self, event: Event = None):
         '''Отменяет последнее действие'''
         if self.history:
             last_action = self.history.pop()
             self.redo_stack.append(last_action)
             self.redraw_from_history()
 
-    def redo(self, event=None):
+    def redo(self, event: Event = None):
         '''Повторяет последнее отмененное действие'''
         if self.redo_stack:
             last_undone_action = self.redo_stack.pop()
@@ -211,7 +211,7 @@ class DrawingApp:
                 self.canvas.create_line(coords, width=width, fill=color, capstyle=tk.ROUND, smooth=tk.TRUE)
                 self.draw.line(coords, fill=color, width=width)
 
-    def change_canvas_size(self, event=None):
+    def change_canvas_size(self, event: Event = None):
         '''Изменяет размер холста'''
         new_width = simpledialog.askinteger("Изменение размера холста", "Введите ширину: ", parent=self.root,
                                             minvalue=1)
@@ -224,7 +224,7 @@ class DrawingApp:
             self.draw = ImageDraw.Draw(self.image)
             self.clear_canvas()
 
-    def add_text_button_click(self, event=None):
+    def add_text_button_click(self, event: Event = None):
         '''Вызывается при нажатии кнопки "Текст".'''
         if event:
             x, y = event.x, event.y
