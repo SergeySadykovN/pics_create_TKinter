@@ -4,7 +4,7 @@ DrawingApp - это приложение для рисования на осно
 
 ## Описание функций
 
-### `__init__(self, root)`
+### Метод `__init__(self, root)`
 Конструктор класса `DrawingApp`, инициализирует основные атрибуты и настраивает элементы холста и пользовательского интерфейса.
 
 #### Параметры
@@ -20,7 +20,7 @@ DrawingApp - это приложение для рисования на осно
 - Привязка событий к методам.
 - Привязка горячих клавиш.
 
-### `setup_ui(self)`
+### Метод `setup_ui(self)`
 Настраивает элементы пользовательского интерфейса, такие как кнопки управления и меню выбора размера кисти.
 
 #### Описание
@@ -30,75 +30,81 @@ DrawingApp - это приложение для рисования на осно
 - Создает и упаковывает выпадающее меню для выбора размера кисти.
 
 
-### `update_brush_size(self, value)`
+### Метод `update_brush_size(self, value)`
 Обновляет значение `self.brush_size` при выборе нового размера из выпадающего меню.
 
 #### Параметры
 - `value` (int): Новый размер кисти.
 
-### `paint(self, event)`
+### Метод `paint(self, event)`
 Метод рисования, который рисует линии на холсте и изображении при перетаскивании мыши.
 
 #### Параметры
 - `event` (tk.Event): Событие Tkinter, содержащее информацию о позиции курсора.
 
-### `reset(self, event)`
+### Метод `reset(self, event)`
 Сбрасывает последнюю позицию курсора при отпускании кнопки мыши.
 
 #### Параметры
 - `event` (tk.Event): Событие Tkinter.
 
-### `clear_canvas(self, event=None)`
+### Метод `clear_canvas(self, event=None)`
 Очищает холст и сбрасывает изображение до пустого белого изображения.
 
 #### Параметры
 - `event` (tk.Event, optional): Событие Tkinter.
 
-### `choose_color(self, event=None)`
+### Метод `choose_color(self, event=None)`
 Открывает диалоговое окно выбора цвета для выбора цвета кисти.
 
 #### Параметры
 - `event` (tk.Event, optional): Событие Tkinter.
 
-### `use_eraser(self, event=None)`
+### Метод `use_eraser(self, event=None)`
 Устанавливает `self.pen_color` в "white" для использования ластика.
 
 #### Параметры
 - `event` (tk.Event, optional): Событие Tkinter.
 
-### `pick_color(self, event)`
+### Метод `pick_color(self, event)`
 Привязано к событию `<Button-3>` (правая кнопка мыши) на холсте. Выбирает цвет пикселя под курсором и устанавливает его как текущий цвет кисти.
 
 #### Параметры
 - `event` (tk.Event): Событие Tkinter.
 
-### `save_image(self, event=None)`
+### Метод `save_image(self, event=None)`
 Открывает диалоговое окно для сохранения изображения в формате PNG.
 
 #### Параметры
 - `event` (tk.Event, optional): Событие Tkinter.
 
-### `undo(self, event=None)`
+### Метод `undo(self, event=None)`
 Отменяет последнее действие.
 
 #### Параметры
 - `event` (tk.Event, optional): Событие Tkinter.
 
-### `redo(self, event=None)`
+### Метод `redo(self, event=None)`
 Повторяет последнее отмененное действие.
 
 #### Параметры
 - `event` (tk.Event, optional): Событие Tkinter.
 
-### `redraw_from_history(self)`
+### Метод `redraw_from_history(self)`
 Перерисовывает все действия из истории.
 
-### `change_canvas_size`
+### Метод `change_canvas_size`
 Изменяет размер холста
+
+### Метод `add_text_button_click`
+Вызывается при нажатии кнопки "Текст"
+
+### Метод `add_text`
+Добавляет текст на холст
 
 ## Основная функция
 
-### `main()`
+### Метод `main()`
 Создает главное окно приложения и запускает цикл событий Tkinter.
 
 #### Описание
